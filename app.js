@@ -237,3 +237,54 @@ document.addEventListener("keydown", (e) => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
     Game.move(e.key);
 });
+
+// Source - https://stackoverflow.com/a
+// Posted by givanse, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-01-20, License - CC BY-SA 4.0
+
+document.addEventListener("touchstart", handleTouchStart, false);
+document.addEventListener("touchmove", handleTouchMove, false);
+
+var xDown = null;
+var yDown = null;
+
+function getTouches(evt) {
+  return (
+    evt.touches || // browser API
+    evt.originalEvent.touches
+  ); // jQuery
+}
+
+function handleTouchStart(evt) {
+  const firstTouch = getTouches(evt)[0];
+  xDown = firstTouch.clientX;
+  yDown = firstTouch.clientY;
+}
+
+function handleTouchMove(evt) {
+  if (!xDown || !yDown) {
+    return;
+  }
+
+  var xUp = evt.touches[0].clientX;
+  var yUp = evt.touches[0].clientY;
+
+  var xDiff = xDown - xUp;
+  var yDiff = yDown - yUp;
+
+  if (Math.abs(xDiff) > Math.abs(yDiff)) {
+    if (xDiff > 0) {
+      Game.move("ArrowRight");
+    } else {
+      Game.move("ArrowLeft");
+    }
+  } else {
+    if (yDiff > 0) {
+      Game.move("ArrowDown");
+    } else {
+      Game.move("ArrowUp");
+    }
+  }
+  xDown = null;
+  yDown = null;
+}
