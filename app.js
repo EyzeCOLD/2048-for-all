@@ -274,15 +274,15 @@ function handleTouchMove(evt) {
 
   if (Math.abs(xDiff) > Math.abs(yDiff)) {
     if (xDiff > 0) {
-      Game.move("ArrowRight");
-    } else {
       Game.move("ArrowLeft");
+    } else {
+      Game.move("ArrowRight");
     }
   } else {
     if (yDiff > 0) {
-      Game.move("ArrowDown");
-    } else {
       Game.move("ArrowUp");
+    } else {
+      Game.move("ArrowDown");
     }
   }
   xDown = null;
