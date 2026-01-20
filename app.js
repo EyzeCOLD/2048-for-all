@@ -15,13 +15,23 @@ const Game = {
     board.id = "board";
     app.appendChild(board);
 
-    for (let row = 0; row < this.SIZE; ++row) {
-      const dataRow = [];
-      for (let col = 0; col < this.SIZE; ++col) {
-        dataRow.push(0);
-      }
-      this.boardData.push(dataRow);
-    }
+    this.boardData = Array(this.SIZE)
+      .fill()
+      .map(() => Array(this.SIZE).fill(0));
+  },
+
+  /**
+   * Resets tileObjects and boardData for a new game
+   */
+  reset() {
+    this.boardData = Array(this.SIZE)
+      .fill()
+      .map(() => Array(this.SIZE).fill(0));
+
+    this.tileObjects.forEach((t) => t.element.remove());
+    this.tileObjects = [];
+
+    this.spawnNumber();
   },
 
   /**
@@ -32,9 +42,15 @@ const Game = {
     newDiv.className = "tile";
     newDiv.appendChild(document.createTextNode(value));
 
-    newDiv.style.transform = `translate(${this.GAP + col * (this.GAP + this.TILE_SIZE)}px, ${this.GAP + row * (this.GAP + this.TILE_SIZE)}px)`;
+    const x = this.GAP + col * (this.GAP + this.TILE_SIZE);
+    const y = this.GAP + row * (this.GAP + this.TILE_SIZE);
+
+    newDiv.style.transform = `translate(${x}px, ${y}px) scale(0)`;
 
     document.getElementById("board").appendChild(newDiv);
+
+    newDiv.getBoundingClientRect();
+    newDiv.style.transform = `translate(${x}px, ${y}px) scale(1)`;
 
     this.tileObjects.push({
       row: row,
@@ -42,7 +58,6 @@ const Game = {
       value: value,
       element: newDiv,
     });
-    console.log(`createTile(): col: ${col}, row: ${row}, val: ${value}`);
   },
 
   /**
@@ -67,19 +82,18 @@ const Game = {
 
     const index = Math.floor(Math.random() * freeSquares.length);
     const { row, col } = freeSquares[index];
-    const val = Math.random() < 0.9 ? 2 : 4;
-    this.boardData[row][col] = val;
-    this.createTile(row, col, val);
-    console.log(`spawnNumber(): col: ${col}, row: ${row}, val: ${val}`);
+    const value = Math.random() < 0.9 ? 2 : 4;
+    this.boardData[row][col] = value;
+    this.createTile(row, col, value);
   },
 
   /**
    * Process a row, eg. an array of four numbers
    */
   processLine(numbers, reverse = false) {
-    if (reverse) numbers.reverse();
     // filter zeros
     numbers = numbers.filter((n) => n !== 0);
+    if (reverse) numbers.reverse();
     // combine
     for (let i = 0; i < numbers.length - 1; ++i) {
       if (numbers[i] !== 0 && numbers[i] === numbers[i + 1]) {
@@ -91,7 +105,8 @@ const Game = {
     numbers = numbers.filter((n) => n !== 0);
     while (numbers.length < this.SIZE) numbers.push(0);
 
-    return reverse ? numbers.reverse() : numbers;
+    if (reverse) numbers.reverse();
+    return numbers;
   },
 
   /**
@@ -132,26 +147,93 @@ const Game = {
     }
 
     if (change) {
-      for (let index = 0; index < this.SIZE; index++) {
-        if (isColumn) {
-          let tilesInCol = this.tileObjects.filter(
-            (tile) => tile.col === index,
-          );
-        } else {
-          let tilesInRow = this.tileObjects.filter(
-            (tile) => tile.row === index,
-          );
+      this.moveDivs(isColumn, reverse);
+      this.spawnNumber();
+      if (this.isGameOver()) {
+        const overlay = document.getElementById("gameOverOverlay");
+        overlay.classList.add("show");
+      }
+    }
+  },
+
+  /**
+   * Move the actual divs
+   */
+  moveDivs(isColumn, reverse) {
+    let newTileObjects = [];
+
+    // Build lines
+    let lines = [];
+    for (let i = 0; i < this.SIZE; ++i) {
+      let tiles = this.tileObjects
+        .filter((t) => (isColumn ? t.col === i : t.row === i))
+
+        .sort((a, b) => {
+          let key = isColumn ? "row" : "col";
+          return reverse ? b[key] - a[key] : a[key] - b[key];
+        });
+      lines.push(tiles);
+    }
+
+    // Combine numbers, prune zeros
+    for (let lineIndex = 0; lineIndex < lines.length; ++lineIndex) {
+      let line = lines[lineIndex];
+      for (let i = 0; i < line.length - 1; ++i) {
+        if (line[i].value === line[i + 1].value) {
+          line[i].value *= 2;
+          line[i + 1].value = 0;
+          line[i + 1].element.remove();
+          ++i;
         }
       }
-      Game.spawnNumber();
+      line = line.filter((t) => t.value !== 0);
+
+      // Update the divs
+      for (let i = 0; i < line.length; ++i) {
+        if (isColumn && reverse) line[i].row = this.SIZE - 1 - i;
+        else if (isColumn) line[i].row = i;
+        else if (reverse) line[i].col = this.SIZE - 1 - i;
+        else line[i].col = i;
+
+        line[i].element.firstChild.nodeValue = line[i].value;
+        const x = this.GAP + line[i].col * (this.GAP + this.TILE_SIZE);
+        const y = this.GAP + line[i].row * (this.GAP + this.TILE_SIZE);
+        line[i].element.style.transform = `translate(${x}px, ${y}px)`;
+      }
+      newTileObjects.push(...line);
     }
+    this.tileObjects = newTileObjects;
+  },
+
+  /**
+   * Well is it?
+   */
+  isGameOver() {
+    if (this.getFreeSquares().length > 0) return false;
+
+    for (let y = 0; y < this.SIZE - 1; ++y) {
+      for (let x = 0; x < this.SIZE - 1; ++x) {
+        if (
+          this.boardData[y][x] === this.boardData[y][x + 1] ||
+          this.boardData[y][x] === this.boardData[y + 1][x]
+        )
+          return false;
+      }
+    }
+    return true;
   },
 };
 
 Game.init();
 Game.spawnNumber();
+
+document.getElementById("retryButton").addEventListener("click", () => {
+  const overlay = document.getElementById("gameOverOverlay");
+  overlay.classList.remove("show");
+  Game.reset();
+});
+
 document.addEventListener("keydown", (e) => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
     Game.move(e.key);
-  if (Game.getFreeSquares().length === 0) console.log("You lose");
 });
