@@ -243,7 +243,7 @@ document.addEventListener("keydown", (e) => {
 // Retrieved 2026-01-20, License - CC BY-SA 4.0
 
 document.addEventListener("touchstart", handleTouchStart, false);
-document.addEventListener("touchmove", handleTouchMove, false);
+document.addEventListener("touchmove", handleTouchMove, { passive: false });
 
 var xDown = null;
 var yDown = null;
@@ -287,4 +287,17 @@ function handleTouchMove(evt) {
   }
   xDown = null;
   yDown = null;
+
+  evt.preventDefault();
 }
+
+function scaleGameBoard() {
+  const board = document.getElementById("board");
+  const scaleX = window.innerWidth / 460;
+  const scaleY = window.innerHeight / 460;
+  const scale = Math.min(scaleX, scaleY);
+  board.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", scaleGameBoard);
+window.addEventListener("load", scaleGameBoard);
