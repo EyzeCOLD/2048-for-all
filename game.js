@@ -7,9 +7,9 @@ const Game = {
   boardData: [],
 
   /**
-   * Initializes the data representation of the board as a 2d table
+   * Kicks off the game
    */
-  init() {
+  run() {
     const app = document.getElementById("app");
     const board = document.createElement("div");
     board.id = "board";
@@ -18,6 +18,8 @@ const Game = {
     this.boardData = Array(this.SIZE)
       .fill()
       .map(() => Array(this.SIZE).fill(0));
+
+    this.spawnNumber();
   },
 
   /**
@@ -152,6 +154,7 @@ const Game = {
       if (this.isGameOver()) {
         const overlay = document.getElementById("gameOverOverlay");
         overlay.classList.add("show");
+        document.getElementById("retryButton").focus();
       }
     }
   },
@@ -223,81 +226,3 @@ const Game = {
     return true;
   },
 };
-
-Game.init();
-Game.spawnNumber();
-
-document.getElementById("retryButton").addEventListener("click", () => {
-  const overlay = document.getElementById("gameOverOverlay");
-  overlay.classList.remove("show");
-  Game.reset();
-});
-
-document.addEventListener("keydown", (e) => {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
-    Game.move(e.key);
-});
-
-// Source - https://stackoverflow.com/a
-// Posted by givanse, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-01-20, License - CC BY-SA 4.0
-
-document.addEventListener("touchstart", handleTouchStart, false);
-document.addEventListener("touchmove", handleTouchMove, { passive: false });
-
-var xDown = null;
-var yDown = null;
-
-function getTouches(evt) {
-  return (
-    evt.touches || // browser API
-    evt.originalEvent.touches
-  ); // jQuery
-}
-
-function handleTouchStart(evt) {
-  const firstTouch = getTouches(evt)[0];
-  xDown = firstTouch.clientX;
-  yDown = firstTouch.clientY;
-}
-
-function handleTouchMove(evt) {
-  if (!xDown || !yDown) {
-    return;
-  }
-
-  var xUp = evt.touches[0].clientX;
-  var yUp = evt.touches[0].clientY;
-
-  var xDiff = xDown - xUp;
-  var yDiff = yDown - yUp;
-
-  if (Math.abs(xDiff) > Math.abs(yDiff)) {
-    if (xDiff > 0) {
-      Game.move("ArrowLeft");
-    } else {
-      Game.move("ArrowRight");
-    }
-  } else {
-    if (yDiff > 0) {
-      Game.move("ArrowUp");
-    } else {
-      Game.move("ArrowDown");
-    }
-  }
-  xDown = null;
-  yDown = null;
-
-  evt.preventDefault();
-}
-
-function scaleGameBoard() {
-  const board = document.getElementById("board");
-  const scaleX = window.innerWidth / 460;
-  const scaleY = window.innerHeight / 460;
-  const scale = Math.min(scaleX, scaleY);
-  board.style.transform = `scale(${scale})`;
-}
-
-window.addEventListener("resize", scaleGameBoard);
-window.addEventListener("load", scaleGameBoard);
