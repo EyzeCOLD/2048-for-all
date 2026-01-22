@@ -7,9 +7,9 @@ const Game = {
   boardData: [],
 
   /**
-   * Initializes the data representation of the board as a 2d table
+   * Kicks off the game
    */
-  init() {
+  run() {
     const app = document.getElementById("app");
     const board = document.createElement("div");
     board.id = "board";
@@ -18,6 +18,8 @@ const Game = {
     this.boardData = Array(this.SIZE)
       .fill()
       .map(() => Array(this.SIZE).fill(0));
+
+    this.spawnNumber();
   },
 
   /**
@@ -152,6 +154,7 @@ const Game = {
       if (this.isGameOver()) {
         const overlay = document.getElementById("gameOverOverlay");
         overlay.classList.add("show");
+        document.getElementById("retryButton").focus();
       }
     }
   },
@@ -223,17 +226,3 @@ const Game = {
     return true;
   },
 };
-
-Game.init();
-Game.spawnNumber();
-
-document.getElementById("retryButton").addEventListener("click", () => {
-  const overlay = document.getElementById("gameOverOverlay");
-  overlay.classList.remove("show");
-  Game.reset();
-});
-
-document.addEventListener("keydown", (e) => {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
-    Game.move(e.key);
-});
