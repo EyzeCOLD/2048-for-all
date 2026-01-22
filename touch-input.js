@@ -34,8 +34,10 @@ function initTouchInputHandling() {
     evt.preventDefault();
   }
 
-  document.addEventListener("touchstart", handleTouchStart, false);
-  document.addEventListener("touchmove", handleTouchMove, {
+  const app = document.getElementById("app");
+
+  app.addEventListener("touchstart", handleTouchStart, false);
+  app.addEventListener("touchmove", handleTouchMove, {
     passive: false,
   });
 }
