@@ -5,16 +5,9 @@ document.getElementById("retryButton").addEventListener("click", () => {
 });
 
 const initInput = () => {
-  const hasTouch =
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0;
-
-  if (hasTouch) {
     const script = document.createElement("script");
     script.src = "touch-input.js";
     document.head.appendChild(script);
-  }
 
   document.addEventListener("keydown", (e) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))

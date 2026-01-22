@@ -10,8 +10,8 @@ const TouchInput = {
   /**
    * Detect the starting coordinate of the touch gesture
    */
-  handleTouchStart(e) {
-    const touch = e.touches;
+  handleTouchStart(evt) {
+    const touch = evt.touches[0];
     this.x0 = touch.clientX;
     this.y0 = touch.clientY;
   },
@@ -19,13 +19,14 @@ const TouchInput = {
   /**
    * Figure out the direction of the gesture from the delta
    */
-  handleTouchMove(e) {
+  handleTouchMove(evt) {
     if (!this.x0 || !this.y0) return;
 
-    const x1 = e.touches[0].clientX;
-    const y1 = e.touches[0].clientY;
+    const x1 = evt.touches[0].clientX;
+    const y1 = evt.touches[0].clientY;
     const xD = this.x0 - x1;
     const yD = this.y0 - y1;
+	  console.log(`xD: ${xD} yD: ${yD}`);
 
     if (Math.abs(xD) > Math.abs(yD)) {
       if (xD > 0) Game.move("ArrowLeft");
@@ -37,6 +38,6 @@ const TouchInput = {
     this.x0 = null;
     this.y0 = null;
 
-    e.preventDefault();
+    evt.preventDefault();
   },
 };
